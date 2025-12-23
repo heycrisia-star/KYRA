@@ -22,8 +22,8 @@ const AiBotScreen: React.FC<{ onNavigate: (v: ViewType) => void }> = ({ onNaviga
     stopCamera();
     setError(null);
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: facingMode, width: { ideal: 1280 }, height: { ideal: 720 } } 
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: facingMode, width: { ideal: 1280 }, height: { ideal: 720 } }
       });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -63,7 +63,7 @@ const AiBotScreen: React.FC<{ onNavigate: (v: ViewType) => void }> = ({ onNaviga
 
   const captureAndAnalyze = async () => {
     if (!videoRef.current || !canvasRef.current) return;
-    
+
     const context = canvasRef.current.getContext('2d');
     canvasRef.current.width = videoRef.current.videoWidth;
     canvasRef.current.height = videoRef.current.videoHeight;
@@ -79,14 +79,17 @@ const AiBotScreen: React.FC<{ onNavigate: (v: ViewType) => void }> = ({ onNaviga
     setError(null);
 
     try {
-      // Correct initialization of GoogleGenAI using strictly process.env.API_KEY
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const prompt = mode === 'food' 
+      // Correct initialization of GoogleGenAI using import.meta.env.VITE_GEMINI_API_KEY
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!apiKey) throw new Error("API Key no encontrada");
+
+      const ai = new GoogleGenAI({ apiKey });
+      const prompt = mode === 'food'
         ? "Analiza esta comida detalladamente. Estima: Calorías, proteínas, carbohidratos y grasas. Explica por qué es una buena (o mala) opción según el modo fitness. Responde en español con un tono profesional pero motivador."
         : "Analiza el físico o el ejercicio en esta foto. Evalúa el estado de forma, posibles mejoras en la postura o técnica, y da un veredicto de 'Status de Fuerza'. Responde en español como un entrenador de élite.";
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
+        model: 'gemini-1.5-flash',
         contents: {
           parts: [
             { inlineData: { data: base64Data, mimeType: 'image/jpeg' } },
@@ -96,8 +99,9 @@ const AiBotScreen: React.FC<{ onNavigate: (v: ViewType) => void }> = ({ onNaviga
       });
 
       setResult(response.text || "Gemini ha analizado la imagen pero no ha devuelto un veredicto claro.");
-    } catch (err) {
-      setError("Error al procesar la imagen con Gemini. Revisa tu conexión.");
+    } catch (err: any) {
+      console.error("Error AI:", err);
+      setError(`Error: ${err.message || 'Error conectando con Gemini'}`);
     } finally {
       setIsScanning(false);
     }
@@ -105,11 +109,11 @@ const AiBotScreen: React.FC<{ onNavigate: (v: ViewType) => void }> = ({ onNaviga
 
   return (
     <div className="flex-1 flex flex-col bg-background-dark relative overflow-hidden h-screen">
-      <input 
-        type="file" 
-        ref={fileInputRef} 
-        className="hidden" 
-        accept="image/*" 
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        accept="image/*"
         onChange={handleFileUpload}
       />
 
@@ -118,7 +122,7 @@ const AiBotScreen: React.FC<{ onNavigate: (v: ViewType) => void }> = ({ onNaviga
           <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-background-dark z-10">
             <span className="material-symbols-outlined text-red-500 text-6xl mb-4">no_photography</span>
             <p className="text-gray-400 mb-6">{error}</p>
-            <button 
+            <button
               onClick={() => fileInputRef.current?.click()}
               className="bg-primary text-black px-8 py-4 rounded-2xl font-black uppercase tracking-widest shadow-glow"
             >
@@ -129,9 +133,9 @@ const AiBotScreen: React.FC<{ onNavigate: (v: ViewType) => void }> = ({ onNaviga
         ) : (
           <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
         )}
-        
+
         <canvas ref={canvasRef} className="hidden" />
-        
+
         {/* Scanning Overlay */}
         <div className="absolute inset-0 pointer-events-none z-20">
           <div className="absolute inset-0 border-[40px] border-background-dark/80"></div>
@@ -167,27 +171,27 @@ const AiBotScreen: React.FC<{ onNavigate: (v: ViewType) => void }> = ({ onNaviga
         {result && (
           <div className="absolute bottom-4 left-4 right-4 p-7 bg-card-dark/98 backdrop-blur-2xl rounded-[40px] border border-primary/40 shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-in slide-in-from-bottom-12 duration-500 z-50">
             <div className="flex items-center justify-between mb-5">
-               <div className="flex items-center gap-3 text-primary">
-                 <div className="size-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30">
-                    <span className="material-symbols-outlined text-2xl animate-pulse">auto_awesome</span>
-                 </div>
-                 <div>
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] block leading-none text-primary/60">Análisis Inteligente</span>
-                    <span className="text-sm font-black uppercase tracking-tighter text-white">Gemini Coach Report</span>
-                 </div>
-               </div>
-               <button onClick={() => setResult(null)} className="text-gray-500 hover:text-white"><span className="material-symbols-outlined">close</span></button>
+              <div className="flex items-center gap-3 text-primary">
+                <div className="size-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30">
+                  <span className="material-symbols-outlined text-2xl animate-pulse">auto_awesome</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] block leading-none text-primary/60">Análisis Inteligente</span>
+                  <span className="text-sm font-black uppercase tracking-tighter text-white">Gemini Coach Report</span>
+                </div>
+              </div>
+              <button onClick={() => setResult(null)} className="text-gray-500 hover:text-white"><span className="material-symbols-outlined">close</span></button>
             </div>
             <div className="max-h-[35vh] overflow-y-auto no-scrollbar mb-8 pr-1">
               <p className="text-gray-200 text-[15px] font-medium leading-relaxed whitespace-pre-wrap italic">"{result}"</p>
             </div>
             <div className="flex gap-4">
               <button onClick={() => setResult(null)} className="flex-1 py-4.5 bg-white/5 rounded-2xl text-[10px] font-black uppercase text-gray-400 hover:bg-white/10 transition-colors">Descartar</button>
-              <button 
-                onClick={() => { 
-                  setResult(null); 
-                  onNavigate('dashboard'); 
-                }} 
+              <button
+                onClick={() => {
+                  setResult(null);
+                  onNavigate('dashboard');
+                }}
                 className="flex-1 py-4.5 bg-primary rounded-2xl text-[10px] font-black uppercase text-black shadow-glow active:scale-95 transition-all"
               >
                 Guardar en Log
@@ -198,15 +202,15 @@ const AiBotScreen: React.FC<{ onNavigate: (v: ViewType) => void }> = ({ onNaviga
       </div>
 
       <div className="h-40 bg-background-dark border-t border-white/5 flex items-center justify-between px-12 shrink-0 z-40">
-        <button 
+        <button
           onClick={() => fileInputRef.current?.click()}
           className="size-16 rounded-[24px] bg-white/5 flex items-center justify-center text-gray-400 hover:text-white transition-all hover:bg-white/10 active:scale-90"
           title="Galería"
         >
           <span className="material-symbols-outlined text-3xl">image</span>
         </button>
-        
-        <button 
+
+        <button
           onClick={captureAndAnalyze}
           disabled={isScanning || !!error}
           className={`size-28 rounded-full border-4 border-primary p-1.5 transition-all active:scale-90 ${isScanning || error ? 'opacity-30 grayscale' : 'shadow-glow hover:scale-105'}`}
@@ -216,7 +220,7 @@ const AiBotScreen: React.FC<{ onNavigate: (v: ViewType) => void }> = ({ onNaviga
           </div>
         </button>
 
-        <button 
+        <button
           className="size-16 rounded-[24px] bg-white/5 flex items-center justify-center text-gray-400 hover:text-white transition-all active:scale-90"
           title="Historial"
         >

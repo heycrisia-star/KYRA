@@ -19,7 +19,10 @@ const AiPlanGeneratorScreen: React.FC<{ onNavigate: (v: ViewType) => void, user:
     setPlanDays(null);
     setNutritionPlan(null);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!apiKey) throw new Error("Falta la API Key (VITE_GEMINI_API_KEY)");
+
+      const ai = new GoogleGenAI({ apiKey });
 
       let prompt = '';
       let schema: any;
@@ -108,9 +111,9 @@ const AiPlanGeneratorScreen: React.FC<{ onNavigate: (v: ViewType) => void, user:
       }
       setSummary(data.summary || []);
 
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error generating plan:", err);
-      alert("Error conectando con el Coach IA. Verifica tu API Key.");
+      alert(`Error IA: ${err.message || 'Verifica VITE_GEMINI_API_KEY'}`);
     } finally {
       setLoading(false);
     }
