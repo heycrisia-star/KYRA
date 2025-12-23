@@ -1,0 +1,8 @@
+{
+  "name": "KYRO V1",
+  "description": "A high-performance fitness application focusing on progressive overload, community, and mindful training with AI-driven insights.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
