@@ -131,7 +131,8 @@ const AiPlanGeneratorScreen: React.FC<{ onNavigate: (v: ViewType) => void, user:
     } catch (err: any) {
       console.error("Error generating plan:", err);
       // More descriptive error for the user
-      alert(`Error Crítico IA: ${err.message}. Intentado con varios modelos.`);
+      const maskedKey = apiKey ? `${apiKey.substring(0, 10)}...` : 'UNDEFINED';
+      alert(`Error Crítico IA: ${err.message}. \n\nClave usada: ${maskedKey} \n(Verifica si coincide con tu nueva clave)`);
     } finally {
       setLoading(false);
     }
