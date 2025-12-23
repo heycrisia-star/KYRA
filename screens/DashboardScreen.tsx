@@ -21,8 +21,8 @@ const DashboardScreen: React.FC<{ onNavigate: (v: ViewType) => void; user: UserP
     <div className="flex-1 flex flex-col bg-background-dark overflow-y-auto pb-32 no-scrollbar">
       {/* Portada de Alto Impacto */}
       <section className="relative h-[300px] w-full shrink-0">
-        <img 
-          src="https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?auto=format&fit=crop&q=80&w=1000" 
+        <img
+          src="https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?auto=format&fit=crop&q=80&w=1000"
           className="h-full w-full object-cover"
           alt="Elite Training"
         />
@@ -58,12 +58,12 @@ const DashboardScreen: React.FC<{ onNavigate: (v: ViewType) => void; user: UserP
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorVol" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#0dccf2" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#0dccf2" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#0dccf2" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#0dccf2" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <Area type="monotone" dataKey="vol" stroke="#0dccf2" strokeWidth={3} fillOpacity={1} fill="url(#colorVol)" />
-                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fill: '#4b5563', fontSize: 10, fontWeight: 'bold'}} />
+                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: '#4b5563', fontSize: 10, fontWeight: 'bold' }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -75,23 +75,23 @@ const DashboardScreen: React.FC<{ onNavigate: (v: ViewType) => void; user: UserP
         </section>
 
         <div className="grid grid-cols-2 gap-4">
-          <div onClick={() => onNavigate('workout')} className="bg-card-dark p-6 rounded-[32px] border border-white/5 flex flex-col justify-between h-40 cursor-pointer active:scale-95 transition-all">
-             <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Actividad</span>
-             <div>
-                <p className="text-3xl font-black text-white italic">4,500 <span className="text-xs">PASOS</span></p>
-                <div className="h-1.5 w-full bg-white/5 rounded-full mt-2">
-                   <div className="h-full bg-primary/40 w-[45%] rounded-full shadow-glow"></div>
-                </div>
-             </div>
+          <div onClick={() => onNavigate('progress')} className="bg-card-dark p-6 rounded-[32px] border border-white/5 flex flex-col justify-between h-40 cursor-pointer active:scale-95 transition-all">
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Actividad</span>
+            <div>
+              <p className="text-3xl font-black text-white italic">4,500 <span className="text-xs">PASOS</span></p>
+              <div className="h-1.5 w-full bg-white/5 rounded-full mt-2">
+                <div className="h-full bg-primary/40 w-[45%] rounded-full shadow-glow"></div>
+              </div>
+            </div>
           </div>
           <div onClick={() => onNavigate('calculator')} className="bg-card-dark p-6 rounded-[32px] border border-white/5 flex flex-col justify-between h-40 cursor-pointer active:scale-95 transition-all">
-             <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Proteína</span>
-             <div>
-                <p className="text-3xl font-black text-white italic">82 <span className="text-xs">G</span></p>
-                <div className="h-1.5 w-full bg-white/5 rounded-full mt-2">
-                   <div className="h-full bg-orange-400 w-[60%] rounded-full shadow-[0_0_10px_rgba(251,146,60,0.3)]"></div>
-                </div>
-             </div>
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Proteína</span>
+            <div>
+              <p className="text-3xl font-black text-white italic">82 <span className="text-xs">G</span></p>
+              <div className="h-1.5 w-full bg-white/5 rounded-full mt-2">
+                <div className="h-full bg-orange-400 w-[60%] rounded-full shadow-[0_0_10px_rgba(251,146,60,0.3)]"></div>
+              </div>
+            </div>
           </div>
         </div>
       </main>

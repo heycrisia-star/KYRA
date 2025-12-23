@@ -26,6 +26,15 @@ const MOCK_POSTS: Post[] = [
 ];
 
 const SocialScreen: React.FC<{ onNavigate: (v: ViewType) => void }> = ({ onNavigate }) => {
+  const [activeTab, setActiveTab] = React.useState('Feed');
+
+  const filteredPosts = MOCK_POSTS.filter(p => {
+    if (activeTab === 'Feed') return true;
+    if (activeTab === 'Mis Escuadrones') return p.author.squad;
+    if (activeTab === 'Discusión') return p.type === 'discussion';
+    return true;
+  });
+
   return (
     <div className="flex-1 flex flex-col bg-background-dark overflow-y-auto no-scrollbar pb-32">
       <header className="sticky top-0 z-40 bg-background-dark/90 backdrop-blur-md border-b border-white/5">
@@ -45,7 +54,11 @@ const SocialScreen: React.FC<{ onNavigate: (v: ViewType) => void }> = ({ onNavig
         <div className="px-6 pb-6">
           <div className="flex p-1 bg-surface-dark rounded-2xl shadow-inner border border-white/5">
             {['Feed', 'Mis Escuadrones', 'Discusión'].map(t => (
-              <button key={t} className={`flex-1 py-3 px-3 text-xs font-black uppercase tracking-widest rounded-xl transition-all ${t === 'Feed' ? 'bg-primary text-background-dark shadow-glow' : 'text-gray-500 hover:text-white'}`}>
+              <button
+                key={t}
+                onClick={() => setActiveTab(t)}
+                className={`flex-1 py-3 px-3 text-xs font-black uppercase tracking-widest rounded-xl transition-all ${activeTab === t ? 'bg-primary text-background-dark shadow-glow' : 'text-gray-500 hover:text-white'}`}
+              >
                 {t}
               </button>
             ))}
@@ -95,7 +108,7 @@ const SocialScreen: React.FC<{ onNavigate: (v: ViewType) => void }> = ({ onNavig
                 <h2 className="text-white text-2xl font-black italic tracking-tighter uppercase mb-2">Semana 4: Control de Cuentas</h2>
                 <p className="text-gray-400 text-xs font-medium line-clamp-2 leading-relaxed">Comparte tus progresos y bloqueos. ¡Mantengamos el impulso juntos!</p>
                 <div className="flex -space-x-2 mt-4">
-                  {[1, 2, 3].map(i => <img key={i} className="w-8 h-8 rounded-full border-2 border-background-dark shadow-lg" src={`https://picsum.photos/seed/${i*12}/50/50`} alt="user" />)}
+                  {[1, 2, 3].map(i => <img key={i} className="w-8 h-8 rounded-full border-2 border-background-dark shadow-lg" src={`https://picsum.photos/seed/${i * 12}/50/50`} alt="user" />)}
                   <div className="w-8 h-8 rounded-full border-2 border-background-dark bg-card-dark flex items-center justify-center text-[9px] font-black text-primary shadow-lg">+42</div>
                 </div>
               </div>
@@ -106,7 +119,7 @@ const SocialScreen: React.FC<{ onNavigate: (v: ViewType) => void }> = ({ onNavig
         {/* Activity Feed */}
         <section className="flex flex-col gap-5 px-6 pb-12">
           <h3 className="text-lg font-black italic tracking-tighter uppercase">Muro de Actividad</h3>
-          {MOCK_POSTS.map(post => (
+          {filteredPosts.map(post => (
             <div key={post.id} className="bg-surface-dark/50 backdrop-blur-sm rounded-[32px] p-6 shadow-xl border border-white/5 group hover:border-primary/20 transition-all">
               <div className="flex items-start gap-4 mb-5">
                 <div className="bg-cover bg-center rounded-2xl size-12 shrink-0 shadow-lg" style={{ backgroundImage: `url("${post.author.avatar}")` }}></div>
@@ -119,7 +132,7 @@ const SocialScreen: React.FC<{ onNavigate: (v: ViewType) => void }> = ({ onNavig
                 </div>
               </div>
               <p className="text-gray-300 text-sm leading-relaxed font-medium mb-5">{post.content}</p>
-              
+
               {post.imageUrl && (
                 <div className="rounded-[24px] overflow-hidden mb-5 bg-black/20 h-40 relative group shadow-inner">
                   <div className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-105" style={{ backgroundImage: `url("${post.imageUrl}")` }}></div>

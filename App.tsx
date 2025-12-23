@@ -21,8 +21,19 @@ import { ViewType, UserProfile } from './types';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewType>('welcome');
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  // Initialize from localStorage if available
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
+    const saved = localStorage.getItem('kyro_user_profile');
+    return saved ? JSON.parse(saved) : null;
+  });
   const [customRoutine, setCustomRoutine] = useState<any[] | null>(null);
+
+  // Save to localStorage whenever userProfile changes
+  React.useEffect(() => {
+    if (userProfile) {
+      localStorage.setItem('kyro_user_profile', JSON.stringify(userProfile));
+    }
+  }, [userProfile]);
 
   const handleOnboardingComplete = (profile: UserProfile) => {
     setUserProfile(profile);
@@ -55,7 +66,7 @@ const App: React.FC = () => {
   return (
     <div className="max-w-md mx-auto h-screen relative bg-background-dark overflow-hidden flex flex-col font-display">
       {renderView()}
-      
+
       {!['welcome', 'onboarding', 'bot', 'plan_generator', 'exercise_detail', 'inventory', 'glossary', 'habits', 'bio_hacking'].includes(currentView) && (
         <nav className="fixed bottom-0 z-50 w-full bg-background-dark border-t border-white/5 max-w-md px-2">
           <div className="flex justify-around items-center h-[72px] pb-1">
