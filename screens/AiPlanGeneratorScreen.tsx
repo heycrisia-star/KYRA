@@ -17,8 +17,10 @@ const AiPlanGeneratorScreen: React.FC<{ onNavigate: (v: ViewType) => void, user:
     setLoading(true);
     setPlanDays(null);
     setNutritionPlan(null);
+    let apiKey = '';
+
     try {
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
       if (!apiKey) throw new Error("Falta VITE_GEMINI_API_KEY");
 
       const genAI = new GoogleGenerativeAI(apiKey);
