@@ -122,8 +122,9 @@ const AiPlanGeneratorScreen: React.FC<{ onNavigate: (v: ViewType) => void, user:
   return (
     <div className="flex-1 flex flex-col bg-[#0a1618] h-screen overflow-hidden text-white font-display">
       <header className="px-6 pt-12 pb-6 flex items-center justify-between border-b border-white/5 bg-[#0a1618]/80 backdrop-blur-xl z-50">
-        <button onClick={() => onNavigate('protocol_hub')} className="text-gray-400 p-2">
+        <button onClick={() => onNavigate('protocol_hub')} className="text-gray-400 p-2 flex items-center gap-2">
           <span className="material-symbols-outlined text-3xl">arrow_back</span>
+          <span className="text-[9px] font-bold text-gray-500 opacity-50">v2.0 (FIX)</span>
         </button>
         <div className="flex bg-white/5 rounded-xl p-1 border border-white/10">
           <button onClick={() => setActiveTab('workout')} className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'workout' ? 'bg-primary text-black shadow-glow' : 'text-gray-500'}`}>Entreno</button>
