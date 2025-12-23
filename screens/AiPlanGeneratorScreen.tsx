@@ -22,16 +22,16 @@ const AiPlanGeneratorScreen: React.FC<{ onNavigate: (v: ViewType) => void, user:
       if (!apiKey) throw new Error("Falta VITE_GEMINI_API_KEY");
 
       const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({
-        model: "gemini-1.5-flash",
-        generationConfig: {
-          responseMimeType: "application/json"
-        }
-      });
+
+      // Fallback strategy for robust model selection
+      const modelNames = ["gemini-1.5-flash", "gemini-1.5-flash-001", "gemini-pro"];
+      let result = null;
+      let lastError = null;
 
       let prompt = '';
-      let schema: any;
+      let schema: any = null;
 
+      // Define Prompt & Schema based on Tab
       if (activeTab === 'workout') {
         const frequency = user?.frequency || 4;
         prompt = `Actúa como un Entrenador de Hipertrofia de Élite. 
@@ -91,12 +91,30 @@ const AiPlanGeneratorScreen: React.FC<{ onNavigate: (v: ViewType) => void, user:
         };
       }
 
-      const result = await model.generateContent({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: {
-          responseSchema: schema
+      // EXECUTE WITH FALLBACK
+      for (const modelName of modelNames) {
+        try {
+          console.log(`Trying model: ${modelName}`);
+          const model = genAI.getGenerativeModel({
+            model: modelName,
+            generationConfig: {
+              responseMimeType: "application/json",
+              responseSchema: schema
+            }
+          });
+
+          result = await model.generateContent({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }]
+          });
+
+          if (result && result.response) break; // Success!
+        } catch (e: any) {
+          console.warn(`Model ${modelName} failed:`, e.message);
+          lastError = e;
         }
-      });
+      }
+
+      if (!result) throw lastError || new Error("Todos los modelos de IA fallaron.");
 
       const text = result.response.text();
       if (!text) throw new Error("No response from AI");
@@ -112,7 +130,8 @@ const AiPlanGeneratorScreen: React.FC<{ onNavigate: (v: ViewType) => void, user:
 
     } catch (err: any) {
       console.error("Error generating plan:", err);
-      alert(`Error IA: ${err.message || 'Verifica VITE_GEMINI_API_KEY'}`);
+      // More descriptive error for the user
+      alert(`Error Crítico IA: ${err.message}. Intentado con varios modelos.`);
     } finally {
       setLoading(false);
     }
