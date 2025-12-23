@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { ViewType, UserProfile } from '../types';
-import { GoogleGenAI, Type } from '@google/genai';
+import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 
 const AiPlanGeneratorScreen: React.FC<{ onNavigate: (v: ViewType) => void, user: UserProfile | null, onPlanGenerated: (plan: any[]) => void }> = ({ onNavigate, user, onPlanGenerated }) => {
   const [loading, setLoading] = useState(false);
@@ -20,9 +19,15 @@ const AiPlanGeneratorScreen: React.FC<{ onNavigate: (v: ViewType) => void, user:
     setNutritionPlan(null);
     try {
       const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-      if (!apiKey) throw new Error("Falta la API Key (VITE_GEMINI_API_KEY)");
+      if (!apiKey) throw new Error("Falta VITE_GEMINI_API_KEY");
 
-      const ai = new GoogleGenAI({ apiKey });
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({
+        model: "gemini-1.5-flash",
+        generationConfig: {
+          responseMimeType: "application/json"
+        }
+      });
 
       let prompt = '';
       let schema: any;
@@ -32,14 +37,15 @@ const AiPlanGeneratorScreen: React.FC<{ onNavigate: (v: ViewType) => void, user:
         prompt = `Actúa como un Entrenador de Hipertrofia de Élite. 
           Genera un protocolo de entrenamiento de EXACTAMENTE ${frequency} DÍAS para ${user?.name || 'el usuario'}. 
           Objetivo: ${user?.goal || 'Hipertrofia'}. Género: ${user?.gender}, Peso: ${user?.weight}kg.
-          REGLAS: Si entrena 3-4 días, más intensidad (FullBody/PPL). Si 5-6, PPL/Arnold. Incluye técnicas avanzadas.`;
+          REGLAS: Si entrena 3-4 días, más intensidad (FullBody/PPL). Si 5-6, PPL/Arnold. Incluye técnicas avanzadas.
+          
+          Devuelve un JSON con: summary (array strings) y days (array objetos).`;
 
-        // Using simplified schema structure for brevity in prompt logic
         schema = {
-          type: Type.OBJECT,
+          type: SchemaType.OBJECT,
           properties: {
-            summary: { type: Type.ARRAY, items: { type: Type.STRING } },
-            days: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { dayNumber: { type: Type.INTEGER }, name: { type: Type.STRING }, focus: { type: Type.STRING }, exercises: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { id: { type: Type.STRING }, name: { type: Type.STRING }, subName: { type: Type.STRING }, zone: { type: Type.STRING }, sets: { type: Type.INTEGER }, technique: { type: Type.STRING }, lastWeight: { type: Type.NUMBER } } } } } } }
+            summary: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+            days: { type: SchemaType.ARRAY, items: { type: SchemaType.OBJECT, properties: { dayNumber: { type: SchemaType.INTEGER }, name: { type: SchemaType.STRING }, focus: { type: SchemaType.STRING }, exercises: { type: SchemaType.ARRAY, items: { type: SchemaType.OBJECT, properties: { id: { type: SchemaType.STRING }, name: { type: SchemaType.STRING }, subName: { type: SchemaType.STRING }, zone: { type: SchemaType.STRING }, sets: { type: SchemaType.INTEGER }, technique: { type: SchemaType.STRING }, lastWeight: { type: SchemaType.NUMBER } } } } } } }
           },
           required: ["summary", "days"]
         };
@@ -61,45 +67,38 @@ const AiPlanGeneratorScreen: React.FC<{ onNavigate: (v: ViewType) => void, user:
          3. Calcula CALORÍAS y MACROS (Proteína, Carbohidratos, Grasas) para cada comida base a su objetivo.
          4. Sé específico con las cantidades.
 
-         Devuelve un JSON válido:
-         {
-           "summary": ["Consejo 1", "Consejo 2"],
-           "meals": [
-             { "name": "Comida 1 (Romper Ayuno)", "time": "12:00 PM", "calories": 800, "macros": "60g P / 40g C / 30g F", "foods": ["3 Huevos XL", "200ml Kefir", "Avena"] }
-           ]
-         }`;
+         Devuelve un JSON válido con: summary (array strings) y meals (array objetos).`;
 
         schema = {
-          type: Type.OBJECT,
+          type: SchemaType.OBJECT,
           properties: {
-            summary: { type: Type.ARRAY, items: { type: Type.STRING } },
+            summary: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
             meals: {
-              type: Type.ARRAY,
+              type: SchemaType.ARRAY,
               items: {
-                type: Type.OBJECT,
+                type: SchemaType.OBJECT,
                 properties: {
-                  name: { type: Type.STRING },
-                  time: { type: Type.STRING },
-                  calories: { type: Type.NUMBER },
-                  macros: { type: Type.STRING },
-                  foods: { type: Type.ARRAY, items: { type: Type.STRING } }
+                  name: { type: SchemaType.STRING },
+                  time: { type: SchemaType.STRING },
+                  calories: { type: SchemaType.NUMBER },
+                  macros: { type: SchemaType.STRING },
+                  foods: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } }
                 }
               }
             }
-          }
+          },
+          required: ["summary", "meals"]
         };
       }
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-1.5-flash',
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json",
+      const result = await model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
           responseSchema: schema
         }
       });
 
-      const text = response.text;
+      const text = result.response.text();
       if (!text) throw new Error("No response from AI");
 
       const data = JSON.parse(text);

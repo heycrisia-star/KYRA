@@ -79,26 +79,29 @@ const AiBotScreen: React.FC<{ onNavigate: (v: ViewType) => void }> = ({ onNaviga
     setError(null);
 
     try {
-      // Correct initialization of GoogleGenAI using import.meta.env.VITE_GEMINI_API_KEY
+      // Correct initialization using new SDK
       const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
       if (!apiKey) throw new Error("API Key no encontrada");
 
-      const ai = new GoogleGenAI({ apiKey });
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
       const prompt = mode === 'food'
         ? "Analiza esta comida detalladamente. Estima: Calorías, proteínas, carbohidratos y grasas. Explica por qué es una buena (o mala) opción según el modo fitness. Responde en español con un tono profesional pero motivador."
         : "Analiza el físico o el ejercicio en esta foto. Evalúa el estado de forma, posibles mejoras en la postura o técnica, y da un veredicto de 'Status de Fuerza'. Responde en español como un entrenador de élite.";
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-1.5-flash',
-        contents: {
-          parts: [
-            { inlineData: { data: base64Data, mimeType: 'image/jpeg' } },
-            { text: prompt }
-          ]
-        }
-      });
+      const result = await model.generateContent([
+        prompt,
+        {
+          inlineData: {
+            data: base64Data,
+            mimeType: "image/jpeg",
+          },
+        },
+      ]);
+      const responseText = result.response.text();
 
-      setResult(response.text || "Gemini ha analizado la imagen pero no ha devuelto un veredicto claro.");
+      setResult(responseText || "Gemini ha analizado la imagen pero no ha devuelto un veredicto claro.");
     } catch (err: any) {
       console.error("Error AI:", err);
       setError(`Error: ${err.message || 'Error conectando con Gemini'}`);
